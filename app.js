@@ -59,7 +59,18 @@ function showTab(id) {
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === id));
   document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === id));
   render();
-  Store.sync().then(refreshView);              // fetch the latest from Google
+  refreshAll();                                // fetch the latest from Google
+}
+
+// Registered contractors come from the accounts sheet
+let contractors = [];
+
+// Pull the latest data + contractors, then re-draw
+function refreshAll() {
+  return Promise.all([
+    Store.sync(),
+    Auth.contractors().then(list => { contractors = list; }).catch(() => {}),
+  ]).then(refreshView);
 }
 
 // Re-draw after a sync, but never while someone is typing in a form
@@ -70,7 +81,7 @@ function refreshView() {
 }
 
 $('tabs').addEventListener('click', e => { if (e.target.dataset.tab) showTab(e.target.dataset.tab); });
-setInterval(() => Store.sync().then(refreshView), 30000);
+setInterval(refreshAll, 30000);
 
 /* ---------- Rendering ---------- */
 function render() {
@@ -95,21 +106,15 @@ function fillSelect(sel, values, first) {
 }
 
 function renderContractors() {
-  fillSelect($('cCategory'), [...new Set(db.contractors.map(c => c.category))], 'All categories');
   const q = $('cSearch').value.toLowerCase();
-  const cat = $('cCategory').value;
-  const sort = $('cSort').value;
-  const list = db.contractors
-    .filter(c => (!cat || c.category === cat) && (c.name + c.location).toLowerCase().includes(q))
-    .sort((a, b) => sort === 'price' ? a.rate - b.rate : b.rating - a.rating);
+  const list = contractors.filter(c => (c.name + ' ' + c.location).toLowerCase().includes(q));
 
   $('contractorList').innerHTML = list.map(c => `
     <div class="card">
       <h3>${esc(c.name)}</h3>
-      <div class="muted">${esc(c.category)} · ${esc(c.location)}</div>
-      <div><span class="stars">★</span> ${c.rating.toFixed(1)}</div>
-      <div class="price">From ${money(c.rate)}/hr</div>
-    </div>`).join('') || empty('No contractors match your search.');
+      <div class="muted">${esc(c.location || 'Location not given')}</div>
+      <span class="badge good">Registered contractor</span>
+    </div>`).join('') || empty(contractors.length ? 'No contractors match your search.' : 'No contractors have registered yet.');
 }
 
 /* Client: my requests with incoming quotes */
@@ -133,6 +138,7 @@ function renderMyRequests() {
                 : (q.status === 'Accepted' ? '<span class="badge good">Accepted</span>' : '')}
             </div>
           </div>`).join('') || '<div class="muted">No quotes yet.</div>'}
+        <button class="btn small ghost" data-delreq="${r.id}">Delete request</button>
       </div>`;
   }).join('') || empty('You have not requested any quotes yet.');
 }
@@ -242,7 +248,7 @@ $('quoteForm').addEventListener('submit', e => {
 });
 
 // Filters
-['cSearch', 'cCategory', 'cSort'].forEach(id => $(id).addEventListener('input', renderContractors));
+$('cSearch').addEventListener('input', renderContractors);
 ['pSearch', 'pCategory'].forEach(id => $(id).addEventListener('input', renderShop));
 
 // Supplier: add product
@@ -300,8 +306,14 @@ document.addEventListener('click', e => {
     saveCart(); renderShop();
   }
   if (d.delete) {
+    if (!confirm('Remove this product?')) return;
     Store.commit('products', d.delete, { _deleted: true });
-    render();
+    toast('Product removed'); render();
+  }
+  if (d.delreq) {
+    if (!confirm('Delete this request?')) return;
+    Store.commit('requests', d.delreq, { _deleted: true });
+    toast('Request deleted'); render();
   }
   if (d.deliver) {
     Store.commit('orders', d.deliver, { status: 'Delivered' });
