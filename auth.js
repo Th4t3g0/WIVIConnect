@@ -1,7 +1,7 @@
 /* Auth layer: register + login.
    WRITE -> posts to a Google Form (no-cors).
    READ  -> fetches the form's response sheet, published as CSV.
-   If CONFIG is empty, it falls back to localStorage (demo mode). */
+FOR DEMO PUPOSES ONLY THIS IS A DEMO AND NOT FOR PRODUCTION */
 
 const Auth = (() => {
   const USERS_KEY = 'wivi-users';
@@ -11,7 +11,7 @@ const Auth = (() => {
   const localUsers = () => JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
 
   // Passwords are hashed in the browser so plain text never reaches the sheet.
-  // (Still NOT production security – fine for a demo.)
+  // DEMO ONLY
   async function hash(email, password) {
     const text = email.toLowerCase() + ':' + password;
     if (window.crypto && crypto.subtle) {
@@ -21,7 +21,7 @@ const Auth = (() => {
     return btoa(text); // fallback if crypto.subtle is unavailable
   }
 
-  // Minimal CSV parser (handles quoted fields)
+  // Minimal CSV parse
   function parseCSV(text) {
     const rows = [];
     let row = [], field = '', quoted = false;
@@ -55,7 +55,7 @@ const Auth = (() => {
   }
 
   // Sheet users + users registered in this browser (so login works instantly,
-  // even before Google republishes the sheet).
+  // 
   async function allUsers() {
     const local = localUsers();
     if (!isLive()) return local;
@@ -64,6 +64,14 @@ const Auth = (() => {
     catch (err) { if (!local.length) throw err; }
     const seen = new Set(remote.map(u => (u.email || '').toLowerCase()));
     return [...remote, ...local.filter(u => !seen.has(u.email.toLowerCase()))];
+  }
+
+  // Registered contractors (no passwords) for the "Find Contractors" page
+  async function contractors() {
+    const users = await allUsers();
+    return users
+      .filter(u => u.role === 'contractor')
+      .map(u => ({ id: u.id, name: u.name, location: u.details || '' }));
   }
 
   async function submitToForm(user) {
@@ -111,7 +119,7 @@ const Auth = (() => {
   }
 
   return {
-    isLive, register, login,
+    isLive, register, login, contractors,
     logout: () => localStorage.removeItem(SESSION_KEY),
     currentUser: () => JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'),
   };
