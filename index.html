@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WIVI Connect</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand">WIVI <span>Connect</span></div>
+    <div id="userBox" class="user-box" hidden>
+      <span id="userName"></span>
+      <span class="badge" id="userRole"></span>
+      <button class="btn small light" id="logoutBtn" type="button">Log out</button>
+    </div>
+  </header>
+
+  <nav id="tabs" class="tabs"></nav>
+
+  <main class="container">
+
+    <!-- ========== LOGIN / REGISTER ========== -->
+    <section id="auth" class="view">
+      <div class="auth-wrap">
+        <div class="card">
+          <div id="modeBanner" class="notice"></div>
+
+          <div class="auth-tabs">
+            <button id="showLogin" type="button" class="active">Log in</button>
+            <button id="showRegister" type="button">Register</button>
+          </div>
+
+          <form id="loginForm" class="form">
+            <label>Email
+              <input name="email" type="email" required autocomplete="username">
+            </label>
+            <label>Password
+              <input name="password" type="password" required autocomplete="current-password">
+            </label>
+            <button class="btn" type="submit">Log in</button>
+          </form>
+
+          <form id="registerForm" class="form" hidden>
+            <label>I am a
+              <select name="role" required>
+                <option value="client">Client</option>
+                <option value="contractor">Contractor</option>
+                <option value="supplier">Hardware Supplier</option>
+              </select>
+            </label>
+            <label>Name / company
+              <input name="name" required>
+            </label>
+            <label>Email
+              <input name="email" type="email" required autocomplete="username">
+            </label>
+            <label>Location
+              <input name="details" placeholder="e.g. Johannesburg">
+            </label>
+            <label>Password
+              <input name="password" type="password" required minlength="4" autocomplete="new-password">
+            </label>
+            <button class="btn" type="submit">Create account</button>
+          </form>
+
+          <p id="authMsg" class="auth-msg"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== CLIENT ========== -->
+    <section id="client-quote" class="view">
+      <h2>Request a Quotation</h2>
+      <form id="quoteForm" class="card form">
+        <label>Project title
+          <input name="title" required placeholder="e.g. Kitchen renovation">
+        </label>
+        <div class="row">
+          <label>Category
+            <select name="category" required>
+              <option>Construction</option>
+              <option>Renovation</option>
+              <option>Plumbing</option>
+              <option>Electrical</option>
+              <option>Painting</option>
+              <option>Maintenance</option>
+            </select>
+          </label>
+          <label>Location
+            <input name="location" required placeholder="e.g. Johannesburg">
+          </label>
+          <label>Budget (R)
+            <input name="budget" type="number" min="0" placeholder="Optional">
+          </label>
+        </div>
+        <label>Description / requirements
+          <textarea name="description" rows="4" required></textarea>
+        </label>
+        <label>Attach images
+          <input name="files" type="file" multiple accept="image/*">
+        </label>
+        <button class="btn" type="submit">Send request</button>
+      </form>
+    </section>
+
+    <section id="client-contractors" class="view">
+      <h2>Find Contractors</h2>
+      <div class="filters">
+        <input id="cSearch" placeholder="Search by name or location">
+        <select id="cCategory"><option value="">All categories</option></select>
+        <select id="cSort">
+          <option value="rating">Top rated</option>
+          <option value="price">Lowest rate</option>
+        </select>
+      </div>
+      <div id="contractorList" class="grid"></div>
+    </section>
+
+    <section id="client-requests" class="view">
+      <h2>My Requests &amp; Quotes</h2>
+      <div id="myRequests"></div>
+    </section>
+
+    <section id="client-shop" class="view">
+      <h2>Hardware Marketplace</h2>
+      <div class="shop-layout">
+        <div>
+          <div class="filters">
+            <input id="pSearch" placeholder="Search products">
+            <select id="pCategory"><option value="">All categories</option></select>
+          </div>
+          <div id="productGrid" class="grid"></div>
+        </div>
+        <aside class="card cart">
+          <h3>Your Cart</h3>
+          <div id="cartItems"></div>
+          <div class="cart-total">Total: <strong id="cartTotal">R0.00</strong></div>
+          <button class="btn" id="checkoutBtn">Place order</button>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ========== CONTRACTOR ========== -->
+    <section id="contractor-requests" class="view">
+      <h2>Open Project Requests</h2>
+      <div id="openRequests"></div>
+    </section>
+
+    <section id="contractor-quotes" class="view">
+      <h2>My Submitted Quotes</h2>
+      <div id="myQuotes"></div>
+    </section>
+
+    <!-- ========== SUPPLIER ========== -->
+    <section id="supplier-products" class="view">
+      <h2>My Products</h2>
+      <form id="productForm" class="card form">
+        <div class="row">
+          <label>Product name
+            <input name="name" required>
+          </label>
+          <label>Category
+            <select name="category">
+              <option>Building materials</option>
+              <option>Tools &amp; equipment</option>
+              <option>Electrical</option>
+              <option>Plumbing</option>
+              <option>Paint &amp; finishing</option>
+            </select>
+          </label>
+          <label>Price (R)
+            <input name="price" type="number" min="0" step="0.01" required>
+          </label>
+          <label>Stock
+            <input name="stock" type="number" min="0" required>
+          </label>
+        </div>
+        <button class="btn" type="submit">Add product</button>
+      </form>
+      <div id="supplierProducts" class="grid"></div>
+    </section>
+
+    <section id="supplier-orders" class="view">
+      <h2>Incoming Orders</h2>
+      <div id="supplierOrders"></div>
+    </section>
+
+  </main>
+
+  <div id="toast" class="toast"></div>
+  <script src="config.js"></script>
+  <script src="data.js"></script>
+  <script src="auth.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
