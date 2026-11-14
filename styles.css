@@ -13,6 +13,10 @@
 
 * { box-sizing: border-box; }
 
+html { -webkit-text-size-adjust: 100%; }
+img, input, select, textarea, button { max-width: 100%; }
+button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+
 body {
   margin: 0;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -81,8 +85,11 @@ h2 { margin-top: 0; }
 label { display: grid; gap: 4px; font-size: .85rem; font-weight: 600; }
 input, select, textarea {
   font: inherit;
+  font-size: 16px;            /* 16px stops iPhones zooming in when a field is tapped */
   font-weight: 400;
-  padding: 9px 10px;
+  padding: 10px 12px;
+  min-height: 44px;           /* comfortable touch target */
+  width: 100%;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: #fff;
@@ -178,7 +185,88 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary); o
 }
 .toast.show { transform: translateX(-50%) translateY(0); }
 
+.card { overflow-wrap: anywhere; }
+textarea { min-height: 96px; }
+input[type="file"] { padding: 8px; min-height: 0; }
+
+/* ---------- Tablet ---------- */
 @media (max-width: 760px) {
   .shop-layout { grid-template-columns: 1fr; }
   .cart { position: static; }
+}
+
+/* ---------- Phones ---------- */
+@media (max-width: 640px) {
+  body { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }   /* room for the bottom nav */
+
+  /* Compact sticky header */
+  .topbar {
+    position: sticky; top: 0; z-index: 20;
+    padding: 10px 14px;
+    padding-top: calc(10px + env(safe-area-inset-top));
+  }
+  .brand { font-size: 1.15rem; }
+  .user-box { gap: 8px; min-width: 0; }
+  #userName { max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .user-box .btn.small { min-height: 36px; padding: 6px 12px; }
+
+  /* Tabs become a bottom navigation bar (hidden on the login screen) */
+  .tabs {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+    padding: 0 0 env(safe-area-inset-bottom);
+    gap: 0;
+    border-top: 1px solid var(--border);
+    border-bottom: none;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, .06);
+  }
+  .tabs:empty { display: none; }
+  .tabs button {
+    flex: 1;
+    min-height: 60px;
+    padding: 8px 4px;
+    font-size: .72rem;
+    line-height: 1.2;
+    text-align: center;
+    white-space: normal;
+    border-bottom: none;
+    border-top: 3px solid transparent;
+  }
+  .tabs button.active { border-top-color: var(--primary); }
+
+  /* Layout */
+  .container { padding: 16px 12px 24px; }
+  h2 { font-size: 1.25rem; }
+  .card { padding: 14px; margin-bottom: 12px; }
+  .grid { grid-template-columns: 1fr; gap: 12px; }
+  .row { grid-template-columns: 1fr; gap: 12px; }
+
+  /* Buttons: big and easy to tap */
+  .btn { min-height: 46px; padding: 12px 18px; font-size: 1rem; }
+  .form > .btn { width: 100%; justify-self: stretch; }
+  .btn.small { min-height: 40px; padding: 8px 14px; font-size: .9rem; }
+  .cart .btn { width: 100%; }
+
+  /* Filters stack */
+  .filters { flex-direction: column; gap: 8px; }
+  .filters input, .filters select { min-width: 0; width: 100%; }
+
+  /* Quote rows and inline forms stack */
+  .inline-form { flex-direction: column; align-items: stretch; }
+  .inline-form label { min-width: 0; }
+  .inline-form .btn { width: 100%; }
+  .quote-line { flex-wrap: wrap; }
+  .quote-line > div:last-child { display: flex; align-items: center; gap: 10px; }
+
+  /* Login screen */
+  .auth-wrap { margin: 8px auto; }
+  .auth-tabs button { min-height: 46px; }
+
+  /* Toast sits above the bottom nav */
+  .toast { bottom: calc(80px + env(safe-area-inset-bottom)); max-width: 90vw; text-align: center; }
+}
+
+/* Very small phones */
+@media (max-width: 360px) {
+  .tabs button { font-size: .66rem; }
+  #userName { display: none; }
 }
