@@ -1,14 +1,3 @@
-/* Data layer for requests, quotes, products and orders.
-
-   Every change is saved as an "event": (collection, id, data).
-   - A new item is an event with the full object.
-   - An update is an event with just the changed fields (e.g. {status:'Accepted'}).
-   - A delete is an event with {_deleted:true}.
-   The app replays all events in order to build its current data.
-
-   LIVE MODE : events are posted to a Google Form and read back from the
-               published Google Sheet (CONFIG.DATA in config.js).
-   DEMO MODE : if CONFIG.DATA is empty, events are kept in this browser only. */
 
 const Store = (() => {
   const EVENTS_KEY = 'wivi-events';
@@ -17,21 +6,8 @@ const Store = (() => {
   const uid = () => Math.random().toString(36).slice(2, 10);
   const COLLECTIONS = ['products', 'requests', 'quotes', 'orders'];
 
-  // Starting data that every user sees
-  const SEED = {
-    contractors: [
-      { id: 'c1', name: 'BuildRight Construction', category: 'Construction', location: 'Johannesburg', rating: 4.8, rate: 450 },
-      { id: 'c2', name: 'Spark Electrical',        category: 'Electrical',   location: 'Pretoria',     rating: 4.5, rate: 380 },
-      { id: 'c3', name: 'FlowFix Plumbing',        category: 'Plumbing',     location: 'Johannesburg', rating: 4.2, rate: 320 },
-      { id: 'c4', name: 'ColourCraft Painters',    category: 'Painting',     location: 'Sandton',      rating: 4.6, rate: 290 },
-    ],
-    products: [
-      { id: 'p1', supplierId: 's1', supplier: 'BuildMart Hardware', name: 'Cement 50kg',        category: 'Building materials', price: 115, stock: 200 },
-      { id: 'p2', supplierId: 's1', supplier: 'BuildMart Hardware', name: 'Cordless Drill',     category: 'Tools & equipment',  price: 899, stock: 25 },
-      { id: 'p3', supplierId: 's1', supplier: 'BuildMart Hardware', name: 'Interior Paint 20L', category: 'Paint & finishing',  price: 749, stock: 60 },
-      { id: 'p4', supplierId: 's1', supplier: 'BuildMart Hardware', name: 'PVC Pipe 3m',        category: 'Plumbing',           price: 89,  stock: 120 },
-    ],
-  };
+
+  const SEED = { contractors: [], products: [] };
 
   let remoteEvents = [];                 // rows read from the Google Sheet
   const state = {};                      // the current data the app renders
@@ -39,7 +15,6 @@ const Store = (() => {
   const readLocal = () => { try { return JSON.parse(localStorage.getItem(EVENTS_KEY) || '[]'); } catch { return []; } };
   const writeLocal = list => localStorage.setItem(EVENTS_KEY, JSON.stringify(list));
 
-  // Minimal CSV parser (handles quoted fields)
   function parseCSV(text) {
     const rows = [];
     let row = [], field = '', quoted = false;
@@ -61,7 +36,7 @@ const Store = (() => {
     return rows;
   }
 
-  // Replay all events (sheet first, then not-yet-published local ones)
+  // Replay all events (sheet first)
   function rebuild() {
     const maps = {};
     COLLECTIONS.forEach(c => maps[c] = new Map());
@@ -69,7 +44,7 @@ const Store = (() => {
 
     const seen = new Set();
     for (const ev of [...remoteEvents, ...readLocal()]) {
-      if (seen.has(ev.eid)) continue;           // same event from sheet + local
+      if (seen.has(ev.eid)) continue;          
       seen.add(ev.eid);
       const map = maps[ev.collection];
       if (!map) continue;
@@ -91,7 +66,7 @@ const Store = (() => {
     body.append(E.collection, ev.collection);
     body.append(E.id, ev.id);
     body.append(E.data, JSON.stringify(ev.data));
-    // no-cors: we can't read the reply, but Google still records the response
+    // 
     return fetch(D.FORM_URL, { method: 'POST', mode: 'no-cors', body }).then(() => markSent(ev.eid));
   }
 
